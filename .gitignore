@@ -61,6 +61,7 @@ libiui_test
 libiui_example
 src/iui_config.h
 tests/nyancat-data.h
+tools/kconfig
 
 # Generated MD3 validation files
 *-gen.inc
