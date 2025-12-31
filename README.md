@@ -1,7 +1,7 @@
 # libiui
 
 A complete [Material Design 3](https://m3.material.io/) (MD3) implementation in pure C.
-Around 10K lines of C99. No dependencies beyond libc.
+Around 10K lines of C99. No dependencies beyond libc, not even for fonts.
 
 Until now, Material Design 3 existed only within the walled gardens of Android (Jetpack Compose),
 iOS (via Flutter), and web browsers—platforms where megabytes of runtime overhead are acceptable.
@@ -14,6 +14,7 @@ One codebase, one API, identical pixels everywhere.
 
 What makes this possible: zero heap allocations (the application provides a fixed buffer),
 no widget trees or retained state (pure immediate-mode), native vector graphics (lines, circles, arcs),
+a built-in single-line vector font (no FreeType, no external font files),
 and complete renderer abstraction (four callbacks—the library never touches graphics APIs).
 The result is predictable memory usage, deterministic performance, and trivial porting.
 
@@ -31,7 +32,7 @@ The same codebase scales from a microcontroller to a full-featured desktop appli
 | MD3 Aspect | Specification | Configurable |
 |------------|---------------|--------------|
 | Color system | 32 semantic tokens, light/dark themes | Always included |
-| Typography | MD3 type scale (display, headline, body, label) | Always included |
+| Typography | MD3 type scale with built-in vector font | Always included |
 | Motion | Duration tokens, 7 easing curves | `CONFIG_FEATURE_ANIMATION` |
 | Elevation | Levels 0-5, dual shadows | Always included |
 | State layers | 8%/12%/12%/16%/38% opacity | Always included |
