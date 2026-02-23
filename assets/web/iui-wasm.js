@@ -17,6 +17,17 @@ const IuiCanvas = {
     fbBuffer: null,
     dpr: 1, /* Device pixel ratio */
 
+    getContext: function () {
+        return this.ctx;
+    },
+    parseColor: function (c) {
+        const a = (c >> 24) & 0xFF;
+        const r = (c >> 16) & 0xFF;
+        const g = (c >> 8) & 0xFF;
+        const b = c & 0xFF;
+        return `rgba(${r},${g},${b},${a / 255})`;
+    },
+
     /* Initialize Canvas context */
     init: function (width, height) {
         console.log("[IuiCanvas] init() called with " + width + "x" + height);
