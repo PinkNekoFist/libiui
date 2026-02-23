@@ -145,9 +145,13 @@ static void test_large_coord_clip(void)
     iui_rect_t neg_clip = {-100.f, -100.f, 200.f, 200.f};
     success = iui_push_clip(ctx, neg_clip);
     ASSERT_TRUE(success);
-    /* clamped — no negative renderer coords */
-    ASSERT_TRUE(g_last_clip_min_x >= 0);
-    ASSERT_TRUE(g_last_clip_min_y >= 0);
+    /* The negative origin is clamped to the window content left/top edge.
+     * Window at (0,0,400,300), padding=8, row_height=24:
+     *   content_x = 2*padding = 16
+     *   content_y = 2*padding + row_height = 40
+     * neg_clip {-100,-100,200,200} ∩ win_clip → min_x=16, min_y=40 */
+    ASSERT_EQ(g_last_clip_min_x, 16);
+    ASSERT_EQ(g_last_clip_min_y, 40);
 
     iui_pop_clip(ctx);
 

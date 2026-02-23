@@ -632,8 +632,12 @@ bool iui_bottom_sheet_begin(iui_context *ctx,
                       IUI_BOTTOM_SHEET_DRAG_HANDLE_HEIGHT;
     iui_rect_t content_rect = {0, content_y, screen_width,
                                current_height - (content_y - sheet_y)};
-    if (!iui_push_clip(ctx, content_rect))
+    if (!iui_push_clip(ctx, content_rect)) {
+        /* Rollback modal layer pushed above to keep the layer stack balanced */
+        if (state->modal && state->anim_progress > 0.0f)
+            iui_pop_layer(ctx);
         return false; /* clip overflow: abort sheet content */
+    }
 
     return true;
 }
