@@ -205,6 +205,9 @@ iui_search_bar_result iui_search_bar_ex(iui_context *ctx,
                           trail_color);
     }
 
+    /* Track component for MD3 validation */
+    IUI_MD3_TRACK_SEARCH_BAR(bar_rect, corner_radius);
+
     /* Advance layout cursor */
     ctx->layout.y += bar_height + ctx->padding;
 

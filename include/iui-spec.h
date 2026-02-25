@@ -415,6 +415,25 @@
 #define IUI_NAV_DRAWER_ICON_GAP 12.f
 #endif
 
+/* MD3 Side Sheet */
+#ifndef IUI_SIDE_SHEET_WIDTH
+#define IUI_SIDE_SHEET_WIDTH 400.f /* Standard side sheet width */
+#endif
+#ifndef IUI_SIDE_SHEET_PADDING
+#define IUI_SIDE_SHEET_PADDING 24.f
+#endif
+
+/* MD3 Carousel */
+#ifndef IUI_CAROUSEL_ITEM_WIDTH
+#define IUI_CAROUSEL_ITEM_WIDTH 240.f
+#endif
+#ifndef IUI_CAROUSEL_ITEM_GAP
+#define IUI_CAROUSEL_ITEM_GAP 8.f
+#endif
+#ifndef IUI_CAROUSEL_CORNER_RADIUS
+#define IUI_CAROUSEL_CORNER_RADIUS 28.f
+#endif
+
 /* List - https://m3.material.io/components/lists/specs */
 #ifndef IUI_LIST_ONE_LINE_HEIGHT
 #define IUI_LIST_ONE_LINE_HEIGHT 56.f

@@ -45,6 +45,9 @@ void iui_card_begin(iui_context *ctx,
     /* Draw card with elevation (shadow + box) */
     iui_draw_elevated_box(ctx, card_rect, ctx->corner, elevation, bg_color);
 
+    /* Track component for MD3 validation */
+    IUI_MD3_TRACK_CARD(card_rect, ctx->corner);
+
     /* Draw border if specified */
     if (border_width > 0.f)
         iui_draw_rect_outline(ctx, card_rect, border_width, border_color);
@@ -245,9 +248,13 @@ bool iui_snackbar(iui_context *ctx,
           snackbar_y = screen_height - snackbar_height - margin_bottom;
 
     /* Draw snackbar background using inverse colors for contrast */
-    ctx->renderer.draw_box(
-        (iui_rect_t) {snackbar_x, snackbar_y, snackbar_width, snackbar_height},
-        corner_radius, ctx->colors.inverse_surface, ctx->renderer.user);
+    iui_rect_t bar_rect = {snackbar_x, snackbar_y, snackbar_width,
+                           snackbar_height};
+    ctx->renderer.draw_box(bar_rect, corner_radius, ctx->colors.inverse_surface,
+                           ctx->renderer.user);
+
+    /* Track component for MD3 validation */
+    IUI_MD3_TRACK_SNACKBAR(bar_rect, corner_radius);
 
     /* Draw message text */
     float text_y = snackbar_y + (snackbar_height - ctx->font_height) * 0.5f;
@@ -391,10 +398,10 @@ bool iui_scroll_end(iui_context *ctx, iui_scroll_state *state)
     float content_height =
         (ctx->layout.y + state->scroll_y) - ctx->scroll_content_start_y;
     float content_width =
-        ctx->scroll_viewport.width; /* Default to viewport width */
+        (ctx->layout.x + state->scroll_x) - ctx->scroll_content_start_x;
 
     state->content_h = fmaxf(content_height, 0.f);
-    state->content_w = fmaxf(content_width, 0.f);
+    state->content_w = fmaxf(content_width, ctx->scroll_viewport.width);
 
     /* Restore layout to after the viewport */
     ctx->layout.x = ctx->scroll_content_start_x;
@@ -590,6 +597,11 @@ bool iui_bottom_sheet_begin(iui_context *ctx,
                            ctx->colors.surface_container_low,
                            ctx->renderer.user);
 
+    /* Track component for MD3 validation (use logical height, not padded rect)
+     */
+    iui_rect_t validation_rect = {0, sheet_y, screen_width, current_height};
+    IUI_MD3_TRACK_BOTTOM_SHEET(validation_rect, IUI_BOTTOM_SHEET_CORNER_RADIUS);
+
     /* Draw drag handle */
     float handle_x = (screen_width - IUI_BOTTOM_SHEET_DRAG_HANDLE_WIDTH) * 0.5f;
     float handle_y = sheet_y + IUI_BOTTOM_SHEET_DRAG_HANDLE_MARGIN;
@@ -708,6 +720,9 @@ void iui_tooltip(iui_context *ctx, const char *text)
     iui_rect_t tooltip_rect = {x, y, width, height};
     ctx->renderer.draw_box(tooltip_rect, IUI_TOOLTIP_CORNER_RADIUS,
                            ctx->colors.inverse_surface, ctx->renderer.user);
+
+    /* Track component for MD3 validation */
+    IUI_MD3_TRACK_TOOLTIP(tooltip_rect, IUI_TOOLTIP_CORNER_RADIUS);
 
     /* Draw text centered in tooltip */
     float text_x = x + (width - text_width) * 0.5f;
@@ -933,6 +948,9 @@ int iui_banner(iui_context *ctx, const iui_banner_options *options)
     /* Draw banner background */
     ctx->renderer.draw_box(banner_rect, 0.f, ctx->colors.surface_container,
                            ctx->renderer.user);
+
+    /* Track component for MD3 validation */
+    IUI_MD3_TRACK_BANNER(banner_rect, 0.f);
 
     /* Draw divider at bottom */
     ctx->renderer.draw_box(
@@ -1174,4 +1192,94 @@ void iui_table_end(iui_context *ctx, iui_table_state *state)
 
     /* Update layout position to after table */
     ctx->layout.y = state->row_y + ctx->padding;
+}
+
+/* MD3 Carousel */
+
+void iui_carousel_begin(iui_context *ctx,
+                        iui_carousel_state *state,
+                        float width,
+                        float height)
+{
+    if (!ctx || !state || !ctx->current_window)
+        return;
+
+    state->item_count = 0;
+    state->item_width = IUI_CAROUSEL_ITEM_WIDTH;
+
+    /* Resolve scroll viewport first (handles auto-sizing: 0.f or negative) */
+    iui_scroll_begin(ctx, &state->scroll, width, height);
+
+    /* Derive item height from resolved viewport height */
+    state->item_height = ctx->scroll_viewport.height;
+}
+
+bool iui_carousel_item(iui_context *ctx,
+                       iui_carousel_state *state,
+                       const char *image_label,
+                       const char *title)
+{
+    if (!ctx || !state)
+        return false;
+
+    float item_x = ctx->layout.x;
+    float item_y = ctx->layout.y;
+
+    /* Add gap before items (except the first one) */
+    if (state->item_count > 0) {
+        item_x += IUI_CAROUSEL_ITEM_GAP;
+        ctx->layout.x += IUI_CAROUSEL_ITEM_GAP;
+    }
+
+    iui_rect_t item_rect = {item_x, item_y, state->item_width,
+                            state->item_height};
+    iui_state_t comp_state = iui_get_component_state(ctx, item_rect, false);
+
+    /* Determine colors */
+    uint32_t bg_color = ctx->colors.surface_container;
+
+    /* Draw background */
+    ctx->renderer.draw_box(item_rect, IUI_CAROUSEL_CORNER_RADIUS, bg_color,
+                           ctx->renderer.user);
+
+    /* State layer */
+    iui_draw_state_layer(ctx, item_rect, IUI_CAROUSEL_CORNER_RADIUS,
+                         ctx->colors.on_surface, comp_state);
+
+    /* Image placeholder area */
+    if (image_label) {
+        float text_y = item_y + state->item_height * 0.4f;
+        float text_width = iui_get_text_width(ctx, image_label);
+        float text_x = item_x + (state->item_width - text_width) * 0.5f;
+        iui_internal_draw_text(ctx, text_x, text_y, image_label,
+                               ctx->colors.on_surface_variant);
+    }
+
+    /* Title area */
+    if (title) {
+        float text_y = item_y + state->item_height * 0.8f;
+        float text_width = iui_get_text_width(ctx, title);
+        float text_x = item_x + (state->item_width - text_width) * 0.5f;
+        iui_internal_draw_text(ctx, text_x, text_y, title,
+                               ctx->colors.on_surface);
+    }
+
+    state->item_count++;
+
+    /* Update layout position for next item */
+    ctx->layout.x += state->item_width;
+    ctx->layout.height = state->item_height;
+
+    /* Track component for MD3 validation */
+    IUI_MD3_TRACK_CAROUSEL(item_rect, IUI_CAROUSEL_CORNER_RADIUS);
+
+    return comp_state == IUI_STATE_PRESSED;
+}
+
+void iui_carousel_end(iui_context *ctx, iui_carousel_state *state)
+{
+    if (!ctx || !state)
+        return;
+
+    iui_scroll_end(ctx, &state->scroll);
 }

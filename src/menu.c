@@ -85,6 +85,9 @@ bool iui_menu_begin(iui_context *ctx,
     ctx->renderer.draw_box(bg_rect, corner, ctx->colors.surface_container,
                            ctx->renderer.user);
 
+    /* Track component for MD3 validation */
+    IUI_MD3_TRACK_MENU(bg_rect, corner);
+
     /* Reset height counter for this frame (will be accumulated by items) */
     menu->height = IUI_MENU_PADDING_V;
 

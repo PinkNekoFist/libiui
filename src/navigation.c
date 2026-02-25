@@ -30,6 +30,9 @@ void iui_nav_rail_begin(iui_context *ctx,
     ctx->renderer.draw_box(rail_rect, 0.f, ctx->colors.surface,
                            ctx->renderer.user);
 
+    /* Track component for MD3 validation */
+    IUI_MD3_TRACK_NAV_RAIL(rail_rect, 0.f);
+
     /* Push clip for rail content */
     iui_push_clip(ctx, rail_rect);
 }
@@ -93,7 +96,8 @@ bool iui_nav_rail_item(iui_context *ctx,
 
     /* In collapsed mode the indicator sits at the top of the item (4dp
      * margin) so the label has room below.  In expanded mode the label
-     * is inline (right of the icon), so the indicator is centered. */
+     * is inline (right of the icon), so the indicator is centered.
+     */
     float indicator_y;
     if (state->expanded)
         indicator_y =
@@ -117,6 +121,8 @@ bool iui_nav_rail_item(iui_context *ctx,
             ctx->renderer.draw_box(indicator_rect, IUI_NAV_RAIL_CORNER_RADIUS,
                                    ctx->colors.secondary_container,
                                    ctx->renderer.user);
+            IUI_MD3_TRACK_NAV_RAIL_INDICATOR(indicator_rect,
+                                             IUI_NAV_RAIL_CORNER_RADIUS);
         } else {
             iui_rect_t indicator_rect = {indicator_x, indicator_y,
                                          IUI_NAV_RAIL_INDICATOR_WIDTH,
@@ -124,6 +130,8 @@ bool iui_nav_rail_item(iui_context *ctx,
             ctx->renderer.draw_box(indicator_rect, IUI_NAV_RAIL_CORNER_RADIUS,
                                    ctx->colors.secondary_container,
                                    ctx->renderer.user);
+            IUI_MD3_TRACK_NAV_RAIL_INDICATOR(indicator_rect,
+                                             IUI_NAV_RAIL_CORNER_RADIUS);
         }
     }
 
@@ -216,6 +224,9 @@ void iui_nav_bar_begin(iui_context *ctx,
     iui_rect_t bar_rect = {x, y, width, IUI_NAV_BAR_HEIGHT};
     ctx->renderer.draw_box(bar_rect, 0.f, ctx->colors.surface_container,
                            ctx->renderer.user);
+
+    /* Track component for MD3 validation */
+    IUI_MD3_TRACK_NAV_BAR(bar_rect, 0.f);
 
     /* Push clip for bar content */
     iui_push_clip(ctx, bar_rect);
@@ -381,6 +392,9 @@ bool iui_nav_drawer_begin(iui_context *ctx,
     ctx->renderer.draw_box(drawer_rect, 0.f, ctx->colors.surface,
                            ctx->renderer.user);
 
+    /* Track component for MD3 validation */
+    IUI_MD3_TRACK_NAV_DRAWER(drawer_rect, 0.f);
+
     /* Register blocking region */
     iui_register_blocking_region(ctx, drawer_rect);
 
@@ -509,6 +523,9 @@ void iui_bottom_app_bar_begin(iui_context *ctx,
     ctx->renderer.draw_box(bar_rect, 0.f, ctx->colors.surface_container,
                            ctx->renderer.user);
 
+    /* Track component for MD3 validation */
+    IUI_MD3_TRACK_BOTTOM_APP_BAR(bar_rect, 0.f);
+
     /* Push clip for bar content */
     iui_push_clip(ctx, bar_rect);
 }
@@ -607,4 +624,167 @@ void iui_bottom_app_bar_end(iui_context *ctx, iui_bottom_app_bar_state *state)
         return;
 
     iui_pop_clip(ctx);
+}
+
+/* MD3 Side Sheet */
+
+void iui_side_sheet_open(iui_side_sheet_state *state)
+{
+    if (state)
+        state->is_open = true;
+}
+
+void iui_side_sheet_close(iui_side_sheet_state *state)
+{
+    if (state)
+        state->is_open = false;
+}
+
+bool iui_side_sheet_begin(iui_context *ctx,
+                          iui_side_sheet_state *state,
+                          float screen_width,
+                          float screen_height)
+{
+    if (!ctx || !state)
+        return false;
+
+    /* Handle animation */
+    float target = state->is_open ? 1.0f : 0.0f;
+    float speed = 8.0f;
+    if (state->anim_progress < target) {
+        state->anim_progress += ctx->delta_time * speed;
+        if (state->anim_progress > target)
+            state->anim_progress = target;
+    } else if (state->anim_progress > target) {
+        state->anim_progress -= ctx->delta_time * speed;
+        if (state->anim_progress < target)
+            state->anim_progress = target;
+    }
+
+    /* Close if fully hidden */
+    if (!state->is_open && state->anim_progress < 0.01f) {
+        state->anim_progress = 0.0f;
+        if (state->modal && ctx->modal.active &&
+            ctx->modal.id == iui_hash_str("side_sheet_modal")) {
+            iui_close_modal(ctx);
+        }
+        return false;
+    }
+
+    if (state->modal && state->anim_progress > 0.0f) {
+        if (!ctx->modal.active ||
+            ctx->modal.id != iui_hash_str("side_sheet_modal")) {
+            iui_begin_modal(ctx, "side_sheet_modal");
+        }
+    }
+
+    /* For standard (non-modal) sheets, push an input layer to block clicks
+     * to widgets underneath */
+    if (!state->modal && state->anim_progress > 0.0f) {
+        state->layer_id = iui_push_layer(ctx, 100);
+    }
+
+    /* Dimensions */
+    float sheet_width = state->width > 0 ? state->width : IUI_SIDE_SHEET_WIDTH;
+    if (sheet_width > screen_width)
+        sheet_width = screen_width;
+
+    float sheet_height = screen_height;
+
+    /* Animate from right edge */
+    float animated_x = screen_width - (sheet_width * state->anim_progress);
+
+    /* Draw scrim for modal sheet */
+    if (state->modal && state->anim_progress > 0.01f) {
+        iui_rect_t screen_rect = {0, 0, screen_width, screen_height};
+        iui_register_blocking_region(ctx, screen_rect);
+
+        uint8_t scrim_alpha =
+            (uint8_t) (IUI_SCRIM_ALPHA * state->anim_progress);
+        uint32_t scrim_color =
+            (scrim_alpha << 24) | (ctx->colors.scrim & 0x00FFFFFF);
+        ctx->renderer.draw_box(screen_rect, 0.f, scrim_color,
+                               ctx->renderer.user);
+
+        /* Close on scrim click (protect against opening click release using
+         * frames_since_open, similar to iui_modal_should_close) */
+        iui_rect_t sheet_rect = {animated_x, 0, sheet_width, sheet_height};
+        if (ctx->modal.frames_since_open >= 1 &&
+            (ctx->mouse_released & IUI_MOUSE_LEFT) &&
+            !in_rect(&sheet_rect, ctx->mouse_pos)) {
+            iui_side_sheet_close(state);
+            /* Mark click handled so it doesn't bleed through */
+            ctx->modal.clicked_inside = true;
+        }
+    }
+
+    /* Draw sheet background (surface color, elevated slightly if standard) */
+    iui_rect_t sheet_rect = {animated_x, 0, sheet_width, sheet_height};
+    iui_elevation_t elevation =
+        state->modal ? IUI_ELEVATION_1 : IUI_ELEVATION_1;
+
+    /* Draw left border for standard sheets (outline variant) */
+    if (!state->modal) {
+        iui_rect_t border_rect = {animated_x - 1.f, 0, 1.f, sheet_height};
+        ctx->renderer.draw_box(border_rect, 0.f, ctx->colors.outline_variant,
+                               ctx->renderer.user);
+    }
+
+    iui_draw_elevated_box(ctx, sheet_rect, 0.f, elevation,
+                          ctx->colors.surface_container_low);
+
+    /* Register blocking region for both modal and standard sheets */
+    iui_register_blocking_region(ctx, sheet_rect);
+
+    /* Save caller layout to be restored in end() */
+    state->saved_layout_x = ctx->layout.x;
+    state->saved_layout_y = ctx->layout.y;
+    state->saved_layout_w = ctx->layout.width;
+    state->saved_layout_h = ctx->layout.height;
+
+    /* Setup layout for sheet content */
+    state->x = animated_x;
+    state->y = 0;
+    state->height = sheet_height;
+
+    /* Using a fixed absolute layout for internal elements (you can also just
+     * set ctx->layout) */
+    ctx->layout.x = animated_x + IUI_SIDE_SHEET_PADDING;
+    ctx->layout.y = IUI_SIDE_SHEET_PADDING;
+    ctx->layout.width = sheet_width - IUI_SIDE_SHEET_PADDING * 2;
+    ctx->layout.height = sheet_height - IUI_SIDE_SHEET_PADDING * 2;
+
+    /* Push clip for sheet content */
+    iui_push_clip(ctx, sheet_rect);
+
+    /* Track component for MD3 validation */
+    IUI_MD3_TRACK_SIDE_SHEET(sheet_rect, 0.f);
+
+    return true;
+}
+
+void iui_side_sheet_end(iui_context *ctx, iui_side_sheet_state *state)
+{
+    if (!ctx || !state)
+        return;
+
+    iui_pop_clip(ctx);
+
+    /* Pop input layer for standard sheets */
+    if (!state->modal && state->layer_id > 0) {
+        iui_pop_layer(ctx);
+        state->layer_id = 0;
+    }
+
+    /* Restore caller layout */
+    ctx->layout.x = state->saved_layout_x;
+    ctx->layout.y = state->saved_layout_y;
+    ctx->layout.width = state->saved_layout_w;
+    ctx->layout.height = state->saved_layout_h;
+
+    if (state->modal && state->anim_progress > 0.0f)
+        iui_end_modal(ctx);
+
+    if (state->modal && !state->is_open && state->anim_progress < 0.01f)
+        iui_close_modal(ctx);
 }

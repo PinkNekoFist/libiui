@@ -413,3 +413,16 @@ GLOBAL typography {
     label_medium 12
     label_small 11
 }
+
+# === Side Sheet ===
+COMPONENT side_sheet {
+    width EXACT 400
+    padding 24
+}
+
+# === Carousel ===
+COMPONENT carousel {
+    item_width 240
+    gap 8
+    corner_radius @shape.extra_large
+}

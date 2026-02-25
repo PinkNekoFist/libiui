@@ -1240,6 +1240,24 @@ typedef enum {
     IUI_MD3_COMP_CHECKBOX,
     IUI_MD3_COMP_RADIO,
     IUI_MD3_COMP_SEGMENTED,
+    IUI_MD3_COMP_SEARCH_BAR,
+    IUI_MD3_COMP_SIDE_SHEET,
+    IUI_MD3_COMP_CAROUSEL,
+    IUI_MD3_COMP_NAV_RAIL,
+    IUI_MD3_COMP_NAV_RAIL_INDICATOR,
+    IUI_MD3_COMP_NAV_DRAWER,
+    IUI_MD3_COMP_NAV_BAR,
+    IUI_MD3_COMP_BOTTOM_APP_BAR,
+    IUI_MD3_COMP_MENU,
+    IUI_MD3_COMP_LIST_ITEM_ONE_LINE,
+    IUI_MD3_COMP_LIST_ITEM_TWO_LINE,
+    IUI_MD3_COMP_LIST_ITEM_THREE_LINE,
+    IUI_MD3_COMP_SNACKBAR,
+    IUI_MD3_COMP_CARD,
+    IUI_MD3_COMP_DIALOG,
+    IUI_MD3_COMP_BOTTOM_SHEET,
+    IUI_MD3_COMP_TOOLTIP,
+    IUI_MD3_COMP_BANNER,
     IUI_MD3_COMP_COUNT
 } iui_md3_comp_type_t;
 
@@ -1311,6 +1329,74 @@ static inline void iui_md3_track(iui_md3_comp_type_t type,
     case IUI_MD3_COMP_SEGMENTED:
         v |= md3_check_touch_target(w, h, scale);
         break;
+    case IUI_MD3_COMP_SEARCH_BAR:
+        v |= md3_check_search_bar(h, scale);
+        v |= md3_check_touch_target(w, h, scale);
+        break;
+    case IUI_MD3_COMP_SIDE_SHEET:
+        v |= md3_check_side_sheet_width(w, scale);
+        break;
+    case IUI_MD3_COMP_CAROUSEL:
+        v |= md3_check_carousel_item_width(w, scale);
+        v |= md3_check_carousel_corner(md3_round_px(corner), scale);
+        break;
+    case IUI_MD3_COMP_NAV_RAIL:
+        /* Accept both collapsed and expanded rail widths */
+        if (md3_check_nav_rail_width(w, scale) != MD3_OK &&
+            md3_check_nav_rail_expanded_width(w, scale) != MD3_OK) {
+            v |= MD3_SIZE_MISMATCH;
+        }
+        break;
+    case IUI_MD3_COMP_NAV_RAIL_INDICATOR:
+        v |= md3_check_nav_rail_indicator(h, scale);
+        /* In expanded mode, indicator width varies, so only check height and
+         * corner */
+        v |= md3_check_nav_rail_corner(md3_round_px(corner), scale);
+        break;
+    case IUI_MD3_COMP_NAV_DRAWER:
+        v |= md3_check_nav_drawer_width(w, scale);
+        break;
+    case IUI_MD3_COMP_NAV_BAR:
+        v |= md3_check_nav_bar(h, scale);
+        break;
+    case IUI_MD3_COMP_BOTTOM_APP_BAR:
+        v |= md3_check_bottom_app_bar(h, scale);
+        break;
+    case IUI_MD3_COMP_MENU:
+        v |= md3_check_menu_width(w, scale);
+        v |= md3_check_menu_corner(md3_round_px(corner), scale);
+        break;
+    case IUI_MD3_COMP_LIST_ITEM_ONE_LINE:
+        v |= md3_check_list_item_one_line(h, scale);
+        break;
+    case IUI_MD3_COMP_LIST_ITEM_TWO_LINE:
+        v |= md3_check_list_item_two_line(h, scale);
+        break;
+    case IUI_MD3_COMP_LIST_ITEM_THREE_LINE:
+        v |= md3_check_list_item_three_line(h, scale);
+        break;
+    case IUI_MD3_COMP_SNACKBAR:
+        v |= md3_check_snackbar(h, scale);
+        v |= md3_check_snackbar_corner(md3_round_px(corner), scale);
+        break;
+    case IUI_MD3_COMP_CARD:
+        v |= md3_check_card_corner(md3_round_px(corner), scale);
+        break;
+    case IUI_MD3_COMP_DIALOG:
+        v |= md3_check_dialog_width(w, scale);
+        v |= md3_check_dialog_corner(md3_round_px(corner), scale);
+        break;
+    case IUI_MD3_COMP_BOTTOM_SHEET:
+        v |= md3_check_bottom_sheet_corner(md3_round_px(corner), scale);
+        v |= md3_check_bottom_sheet_min_height(h, scale);
+        break;
+    case IUI_MD3_COMP_TOOLTIP:
+        v |= md3_check_tooltip_width(w, scale);
+        v |= md3_check_tooltip_corner(md3_round_px(corner), scale);
+        break;
+    case IUI_MD3_COMP_BANNER:
+        v |= md3_check_banner(h, scale);
+        break;
     default:
         break;
     }
@@ -1369,6 +1455,42 @@ static inline const iui_md3_tracked_t *iui_md3_get_tracked(int index)
     iui_md3_track(IUI_MD3_COMP_RADIO, rect, corner)
 #define IUI_MD3_TRACK_SEGMENTED(rect, corner) \
     iui_md3_track(IUI_MD3_COMP_SEGMENTED, rect, corner)
+#define IUI_MD3_TRACK_SEARCH_BAR(rect, corner) \
+    iui_md3_track(IUI_MD3_COMP_SEARCH_BAR, rect, corner)
+#define IUI_MD3_TRACK_SIDE_SHEET(rect, corner) \
+    iui_md3_track(IUI_MD3_COMP_SIDE_SHEET, rect, corner)
+#define IUI_MD3_TRACK_CAROUSEL(rect, corner) \
+    iui_md3_track(IUI_MD3_COMP_CAROUSEL, rect, corner)
+#define IUI_MD3_TRACK_NAV_RAIL(rect, corner) \
+    iui_md3_track(IUI_MD3_COMP_NAV_RAIL, rect, corner)
+#define IUI_MD3_TRACK_NAV_RAIL_INDICATOR(rect, corner) \
+    iui_md3_track(IUI_MD3_COMP_NAV_RAIL_INDICATOR, rect, corner)
+#define IUI_MD3_TRACK_NAV_DRAWER(rect, corner) \
+    iui_md3_track(IUI_MD3_COMP_NAV_DRAWER, rect, corner)
+#define IUI_MD3_TRACK_NAV_BAR(rect, corner) \
+    iui_md3_track(IUI_MD3_COMP_NAV_BAR, rect, corner)
+#define IUI_MD3_TRACK_BOTTOM_APP_BAR(rect, corner) \
+    iui_md3_track(IUI_MD3_COMP_BOTTOM_APP_BAR, rect, corner)
+#define IUI_MD3_TRACK_MENU(rect, corner) \
+    iui_md3_track(IUI_MD3_COMP_MENU, rect, corner)
+#define IUI_MD3_TRACK_LIST_ITEM_ONE_LINE(rect, corner) \
+    iui_md3_track(IUI_MD3_COMP_LIST_ITEM_ONE_LINE, rect, corner)
+#define IUI_MD3_TRACK_LIST_ITEM_TWO_LINE(rect, corner) \
+    iui_md3_track(IUI_MD3_COMP_LIST_ITEM_TWO_LINE, rect, corner)
+#define IUI_MD3_TRACK_LIST_ITEM_THREE_LINE(rect, corner) \
+    iui_md3_track(IUI_MD3_COMP_LIST_ITEM_THREE_LINE, rect, corner)
+#define IUI_MD3_TRACK_SNACKBAR(rect, corner) \
+    iui_md3_track(IUI_MD3_COMP_SNACKBAR, rect, corner)
+#define IUI_MD3_TRACK_CARD(rect, corner) \
+    iui_md3_track(IUI_MD3_COMP_CARD, rect, corner)
+#define IUI_MD3_TRACK_DIALOG(rect, corner) \
+    iui_md3_track(IUI_MD3_COMP_DIALOG, rect, corner)
+#define IUI_MD3_TRACK_BOTTOM_SHEET(rect, corner) \
+    iui_md3_track(IUI_MD3_COMP_BOTTOM_SHEET, rect, corner)
+#define IUI_MD3_TRACK_TOOLTIP(rect, corner) \
+    iui_md3_track(IUI_MD3_COMP_TOOLTIP, rect, corner)
+#define IUI_MD3_TRACK_BANNER(rect, corner) \
+    iui_md3_track(IUI_MD3_COMP_BANNER, rect, corner)
 
 #else /* !IUI_MD3_RUNTIME_VALIDATION */
 
@@ -1390,6 +1512,24 @@ static inline const iui_md3_tracked_t *iui_md3_get_tracked(int index)
 #define IUI_MD3_TRACK_CHECKBOX(rect, corner) ((void) 0)
 #define IUI_MD3_TRACK_RADIO(rect, corner) ((void) 0)
 #define IUI_MD3_TRACK_SEGMENTED(rect, corner) ((void) 0)
+#define IUI_MD3_TRACK_SEARCH_BAR(rect, corner) ((void) 0)
+#define IUI_MD3_TRACK_SIDE_SHEET(rect, corner) ((void) 0)
+#define IUI_MD3_TRACK_CAROUSEL(rect, corner) ((void) 0)
+#define IUI_MD3_TRACK_NAV_RAIL(rect, corner) ((void) 0)
+#define IUI_MD3_TRACK_NAV_RAIL_INDICATOR(rect, corner) ((void) 0)
+#define IUI_MD3_TRACK_NAV_DRAWER(rect, corner) ((void) 0)
+#define IUI_MD3_TRACK_NAV_BAR(rect, corner) ((void) 0)
+#define IUI_MD3_TRACK_BOTTOM_APP_BAR(rect, corner) ((void) 0)
+#define IUI_MD3_TRACK_MENU(rect, corner) ((void) 0)
+#define IUI_MD3_TRACK_LIST_ITEM_ONE_LINE(rect, corner) ((void) 0)
+#define IUI_MD3_TRACK_LIST_ITEM_TWO_LINE(rect, corner) ((void) 0)
+#define IUI_MD3_TRACK_LIST_ITEM_THREE_LINE(rect, corner) ((void) 0)
+#define IUI_MD3_TRACK_SNACKBAR(rect, corner) ((void) 0)
+#define IUI_MD3_TRACK_CARD(rect, corner) ((void) 0)
+#define IUI_MD3_TRACK_DIALOG(rect, corner) ((void) 0)
+#define IUI_MD3_TRACK_BOTTOM_SHEET(rect, corner) ((void) 0)
+#define IUI_MD3_TRACK_TOOLTIP(rect, corner) ((void) 0)
+#define IUI_MD3_TRACK_BANNER(rect, corner) ((void) 0)
 
 #endif /* IUI_MD3_RUNTIME_VALIDATION */
 

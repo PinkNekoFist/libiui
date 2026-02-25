@@ -45,6 +45,11 @@ void iui_segmented(iui_context *ctx,
         (iui_rect_t) {seg_x_start, seg_y, ctx->layout.width, seg_height},
         pill_radius, ctx->colors.surface_container_highest, ctx->renderer.user);
 
+    /* Track component for MD3 validation */
+    IUI_MD3_TRACK_SEGMENTED(
+        ((iui_rect_t) {seg_x_start, seg_y, ctx->layout.width, seg_height}),
+        pill_radius);
+
     /* Selected segment highlight with animation */
     if (*selected < num_entries) {
         float sel_x = (ctx->animation.widget == selected)
@@ -358,6 +363,11 @@ float iui_slider_ex(iui_context *ctx,
 
     /* Update thumb rect with final position */
     thumb_rect.x = thumb_x - half_size;
+
+    /* Track component for MD3 validation using final thumb/touch bounds */
+    touch_rect = thumb_rect;
+    iui_expand_touch_target(&touch_rect, IUI_SLIDER_TOUCH_TARGET);
+    IUI_MD3_TRACK_SLIDER(touch_rect, touch_rect.height * .5f);
 
     /* MD3: State layer on hover/press/drag */
     if ((thumb_hovered || is_dragging) && !disabled) {

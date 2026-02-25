@@ -448,6 +448,27 @@ typedef struct {
     float anim_progress; /* 0.0 = closed, 1.0 = fully open */
 } iui_nav_drawer_state;
 
+/* MD3 Side Sheet state */
+typedef struct {
+    bool is_open;
+    bool modal;
+    float x, y;          /* side sheet position */
+    float width;         /* current or target width */
+    float height;        /* side sheet height */
+    float anim_progress; /* 0.0 = closed, 1.0 = fully open */
+    float saved_layout_x, saved_layout_y;
+    float saved_layout_w, saved_layout_h;
+    int layer_id; /* input layer ID for standard sheets */
+} iui_side_sheet_state;
+
+/* MD3 Carousel State */
+typedef struct {
+    iui_scroll_state scroll;
+    int item_count;
+    float item_width;
+    float item_height;
+} iui_carousel_state;
+
 /* MD3 Button styles */
 typedef enum iui_button_style {
     IUI_BUTTON_TONAL,    /* current default (surface_container bg) */
@@ -866,6 +887,9 @@ void iui_divider(iui_context *ctx);
 
 /* MD3 Inset Divider - divider with left padding (16dp) */
 void iui_divider_inset(iui_context *ctx);
+
+/* MD3 Middle-Inset Divider - divider with left and right padding (16dp) */
+void iui_divider_middle_inset(iui_context *ctx);
 
 /* Displays a segmented control with mutually exclusive options
  * @ctx:         current UI context
@@ -2248,6 +2272,26 @@ void iui_nav_drawer_end(iui_context *ctx, iui_nav_drawer_state *state);
 /* Open/close drawer */
 void iui_nav_drawer_open(iui_nav_drawer_state *state);
 void iui_nav_drawer_close(iui_nav_drawer_state *state);
+
+/* MD3 Side Sheet */
+void iui_side_sheet_open(iui_side_sheet_state *state);
+void iui_side_sheet_close(iui_side_sheet_state *state);
+bool iui_side_sheet_begin(iui_context *ctx,
+                          iui_side_sheet_state *state,
+                          float screen_width,
+                          float screen_height);
+void iui_side_sheet_end(iui_context *ctx, iui_side_sheet_state *state);
+
+/* MD3 Carousel */
+void iui_carousel_begin(iui_context *ctx,
+                        iui_carousel_state *state,
+                        float width,
+                        float height);
+bool iui_carousel_item(iui_context *ctx,
+                       iui_carousel_state *state,
+                       const char *image_label,
+                       const char *title);
+void iui_carousel_end(iui_context *ctx, iui_carousel_state *state);
 
 /* Bottom Sheet
  * Surfaces containing supplementary content anchored to the bottom of screen

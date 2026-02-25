@@ -182,6 +182,9 @@ int iui_dialog(iui_context *ctx,
                            ctx->colors.surface_container_high,
                            ctx->renderer.user);
 
+    /* Track component for MD3 validation */
+    IUI_MD3_TRACK_DIALOG(dialog_bounds, corner);
+
     /* Draw title */
     float content_x = dialog_x + IUI_DIALOG_PADDING;
     float content_y = dialog_y + IUI_DIALOG_PADDING;
