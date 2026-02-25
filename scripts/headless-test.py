@@ -859,6 +859,25 @@ int main(int argc, char **argv) {
         iui_fab(ctx, 60.f, 420.f, "add");
         iui_fab_large(ctx, 160.f, 420.f, "edit");
 
+        static char search_buf[64] = "";
+        static size_t search_cur = 0;
+        iui_search_bar(ctx, search_buf, sizeof(search_buf), &search_cur, "Search...");
+
+        static iui_side_sheet_state side_sheet = { .is_open = true, .modal = false };
+        if (iui_side_sheet_begin(ctx, &side_sheet, 580.f, 580.f)) {
+            iui_side_sheet_end(ctx, &side_sheet);
+        }
+
+        static iui_carousel_state carousel;
+        iui_carousel_begin(ctx, &carousel, 0.f, 120.f);
+        iui_carousel_item(ctx, &carousel, "Image", "Item 1");
+        iui_carousel_end(ctx, &carousel);
+
+        static iui_nav_rail_state rail = {.expanded = false};
+        iui_nav_rail_begin(ctx, &rail, 0, 0, 580);
+        iui_nav_rail_item(ctx, &rail, "home", "Home", 0);
+        iui_nav_rail_end(ctx, &rail);
+
         iui_end_window(ctx);
         iui_end_frame(ctx);
         g_iui_port.end_frame(port);
@@ -873,7 +892,12 @@ int main(int argc, char **argv) {
         if (frame_violations > 0 && total_violations == frame_violations) {
             static const char *type_names[] = {
                 "BUTTON", "FAB", "FAB_LARGE", "CHIP", "TEXTFIELD",
-                "SWITCH", "SLIDER", "TAB", "CHECKBOX", "RADIO", "SEGMENTED"
+                "SWITCH", "SLIDER", "TAB", "CHECKBOX", "RADIO", "SEGMENTED",
+                "SEARCH_BAR", "SIDE_SHEET", "CAROUSEL", "NAV_RAIL",
+                "NAV_RAIL_INDICATOR", "NAV_DRAWER",
+                "NAV_BAR", "BOTTOM_APP_BAR", "MENU", "LIST_ITEM_ONE_LINE",
+                "LIST_ITEM_TWO_LINE", "LIST_ITEM_THREE_LINE", "SNACKBAR",
+                "CARD", "DIALOG", "BOTTOM_SHEET", "TOOLTIP", "BANNER"
             };
             static const char *viol_names[] = {
                 "HEIGHT", "WIDTH", "TOUCH_TARGET", "CORNER_RADIUS"
@@ -881,7 +905,7 @@ int main(int argc, char **argv) {
             for (int i = 0; i < frame_tracked; i++) {
                 const iui_md3_tracked_t *t = iui_md3_get_tracked(i);
                 if (t && t->violations != 0) {
-                    const char *tname = (t->type < 11) ? type_names[t->type] : "UNKNOWN";
+                    const char *tname = (t->type < 29) ? type_names[t->type] : "UNKNOWN";
                     printf("  VIOLATION: %s size=%.0fx%.0f ", tname, t->bounds.width, t->bounds.height);
                     for (int v = 0; v < 4; v++) {
                         if (t->violations & (1 << v)) printf("[%s] ", viol_names[v]);
@@ -940,6 +964,7 @@ def run_md3_runtime_tests(verbose=False):
     try:
         out = subprocess.run([str(exe)], capture_output=True, text=True, timeout=10)
     except subprocess.TimeoutExpired:
+        return False, {"error": "timeout"}
         return False, {"error": "timeout"}
 
     tracked = 0

@@ -249,6 +249,14 @@ bool iui_list_item_ex(iui_context *ctx,
     /* Draw state layer for hover/press */
     iui_draw_state_layer(ctx, item_rect, 0.f, ctx->colors.on_surface, state);
 
+    /* Track component for MD3 validation */
+    if (type == IUI_LIST_ONE_LINE)
+        IUI_MD3_TRACK_LIST_ITEM_ONE_LINE(item_rect, 0.f);
+    else if (type == IUI_LIST_TWO_LINE)
+        IUI_MD3_TRACK_LIST_ITEM_TWO_LINE(item_rect, 0.f);
+    else if (type == IUI_LIST_THREE_LINE)
+        IUI_MD3_TRACK_LIST_ITEM_THREE_LINE(item_rect, 0.f);
+
     /* Calculate content positions */
     float cy = item_y + item_height * 0.5f;
     float content_x = item_x + IUI_LIST_PADDING_H;

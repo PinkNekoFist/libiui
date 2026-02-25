@@ -46,6 +46,9 @@ static int iui_tabs_internal(iui_context *ctx,
     ctx->renderer.draw_box(container_rect, 0.f, ctx->colors.surface,
                            ctx->renderer.user);
 
+    /* Track component for MD3 validation */
+    IUI_MD3_TRACK_TAB(container_rect, 0.f);
+
     /* Animation state for indicator sliding
      * Use a unique ID based on the labels pointer address for animation
      * tracking

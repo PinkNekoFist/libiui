@@ -168,4 +168,7 @@ static inline void md3_report(const char *component, md3_violation_t v)
 #define md3_report(component, v) ((void) 0)
 #endif
 
+/* Include extended validators generated from DSL */
+#include "md3-validate-gen.inc"
+
 #endif /* IUI_MD3_VALIDATE_H */

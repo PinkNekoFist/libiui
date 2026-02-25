@@ -109,6 +109,25 @@ static void test_search_bar_height_56dp(void)
     PASS();
 }
 
+static void test_side_sheet_dimensions(void)
+{
+    TEST(side_sheet_dimensions);
+    /* MD3 spec: Side sheet width = 400dp */
+    ASSERT_NEAR(IUI_SIDE_SHEET_WIDTH, 400.f, 0.001f);
+    ASSERT_NEAR(IUI_SIDE_SHEET_PADDING, 24.f, 0.001f);
+    PASS();
+}
+
+static void test_carousel_dimensions(void)
+{
+    TEST(carousel_dimensions);
+    /* MD3 spec: Carousel item width = 240dp, corner = 28dp */
+    ASSERT_NEAR(IUI_CAROUSEL_ITEM_WIDTH, 240.f, 0.001f);
+    ASSERT_NEAR(IUI_CAROUSEL_ITEM_GAP, 8.f, 0.001f);
+    ASSERT_NEAR(IUI_CAROUSEL_CORNER_RADIUS, 28.f, 0.001f);
+    PASS();
+}
+
 static void test_date_picker_day_32dp(void)
 {
     TEST(date_picker_day_32dp);
@@ -1160,6 +1179,8 @@ void run_spec_tests(void)
     test_slider_track_height_4dp();
     test_tab_height_48dp();
     test_search_bar_height_56dp();
+    test_side_sheet_dimensions();
+    test_carousel_dimensions();
     test_date_picker_day_32dp();
     test_menu_item_height();
     test_switch_dimensions_32dp();

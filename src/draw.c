@@ -314,7 +314,9 @@ IUI_DEFINE_TEXT_STUB(label_small)
 
 /* Dividers and separators - always available regardless of MODULE_BASIC */
 
-static void iui_divider_internal(iui_context *ctx, float left_inset)
+static void iui_divider_internal(iui_context *ctx,
+                                 float left_inset,
+                                 float right_inset)
 {
     if (!ctx->current_window)
         return;
@@ -323,7 +325,7 @@ static void iui_divider_internal(iui_context *ctx, float left_inset)
     ctx->layout.y += 8.f;
 
     /* MD3: 1dp height, outline_variant color */
-    float w = ctx->layout.width - left_inset;
+    float w = ctx->layout.width - left_inset - right_inset;
 
     /* Guard against negative width in narrow containers */
     if (w > 0.f) {
@@ -338,13 +340,19 @@ static void iui_divider_internal(iui_context *ctx, float left_inset)
 
 void iui_divider(iui_context *ctx)
 {
-    iui_divider_internal(ctx, 0.f);
+    iui_divider_internal(ctx, 0.f, 0.f);
 }
 
 void iui_divider_inset(iui_context *ctx)
 {
     /* MD3: 16dp left inset */
-    iui_divider_internal(ctx, 16.f);
+    iui_divider_internal(ctx, 16.f, 0.f);
+}
+
+void iui_divider_middle_inset(iui_context *ctx)
+{
+    /* MD3: 16dp left and right inset */
+    iui_divider_internal(ctx, 16.f, 16.f);
 }
 
 /* Drawing Helper: Rectangle Outline */

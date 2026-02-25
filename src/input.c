@@ -1428,6 +1428,9 @@ bool iui_checkbox(iui_context *ctx, const char *label, bool *checked)
         .height = ctx->row_height,
     };
 
+    /* Track component for MD3 validation */
+    IUI_MD3_TRACK_CHECKBOX(hit_rect, corner);
+
     return toggle_base(ctx, label, box_rect, hit_rect, corner, checked, 0,
                        false, checkbox_draw, NULL);
 }
@@ -1455,6 +1458,9 @@ bool iui_radio(iui_context *ctx,
         .width = ctx->layout.width,
         .height = ctx->row_height,
     };
+
+    /* Track component for MD3 validation */
+    IUI_MD3_TRACK_RADIO(hit_rect, corner);
 
     return toggle_base(ctx, label, circle_rect, hit_rect, corner, group_value,
                        button_value, true, radio_draw, NULL);

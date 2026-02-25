@@ -138,6 +138,7 @@ class Component:
     indicator_height: Optional[float] = None
     indicator_width: Optional[float] = None
     item_height: Optional[float] = None
+    item_width: Optional[float] = None
     icon_container: Optional[float] = None
     button_height: Optional[float] = None
     drag_handle_width: Optional[float] = None
@@ -245,6 +246,7 @@ COMPONENT_PROPS = [
     (r"indicator_height\s+(\d+(?:\.\d+)?)", "indicator_height", float),
     (r"indicator_width\s+(\d+(?:\.\d+)?)", "indicator_width", float),
     (r"item_height\s+(\d+(?:\.\d+)?)", "item_height", float),
+    (r"item_width\s+(\d+(?:\.\d+)?)", "item_width", float),
     (r"button_height\s+(\d+(?:\.\d+)?)", "button_height", float),
     (r"drag_handle_width\s+(\d+(?:\.\d+)?)", "drag_handle_width", float),
     (r"drag_handle_height\s+(\d+(?:\.\d+)?)", "drag_handle_height", float),
@@ -614,6 +616,16 @@ def generate_header(spec: Spec) -> str:
                 )
             )
 
+        # Item width (for carousel/lists)
+        if comp.item_width is not None:
+            lines.append(
+                emit_func(
+                    f"{fn}_item_width",
+                    "int width_px, float scale",
+                    f"    return md3_check_exact_dp(width_px, {comp.item_width:.1f}f, scale, MD3_SIZE_MISMATCH);",
+                )
+            )
+
         # Icon container (for bottom app bar)
         if comp.icon_container is not None:
             lines.append(
@@ -756,7 +768,7 @@ def generate_header(spec: Spec) -> str:
                 emit_func(
                     f"{fn}_expanded_width",
                     "int width_px, float scale",
-                    f"    return md3_check_exact_dp(width_px, {comp.expanded_width:.1f}f, scale, MD3_WIDTH_LOW);",
+                    f"    return md3_check_exact_dp(width_px, {comp.expanded_width:.1f}f, scale, MD3_SIZE_MISMATCH);",
                 )
             )
 
@@ -1111,6 +1123,19 @@ def generate_tests(spec: Spec) -> str:
                 )
             )
 
+        # Item width
+        if comp.item_width is not None:
+            dp = int(comp.item_width)
+            lines.extend(
+                emit_test(
+                    f"Item width {dp}dp",
+                    f"ASSERT_EQ({fn}_item_width({dp}, 1.f), MD3_OK);",
+                    f"ASSERT_TRUE({fn}_item_width({dp + 1}, 1.f) & MD3_SIZE_MISMATCH);",
+                    f"ASSERT_TRUE({fn}_item_width({dp - 1}, 1.f) & MD3_SIZE_MISMATCH);",
+                    f"ASSERT_EQ({fn}_item_width({dp * 2}, 2.f), MD3_OK);",
+                )
+            )
+
         # Icon container
         if comp.icon_container is not None:
             dp = int(comp.icon_container)
@@ -1292,8 +1317,8 @@ def generate_tests(spec: Spec) -> str:
                 emit_test(
                     f"Expanded width {dp}dp",
                     f"ASSERT_EQ({fn}_expanded_width({dp}, 1.f), MD3_OK);",
-                    f"ASSERT_TRUE({fn}_expanded_width({dp + 1}, 1.f) & MD3_WIDTH_LOW);",
-                    f"ASSERT_TRUE({fn}_expanded_width({dp - 1}, 1.f) & MD3_WIDTH_LOW);",
+                    f"ASSERT_TRUE({fn}_expanded_width({dp + 1}, 1.f) & MD3_SIZE_MISMATCH);",
+                    f"ASSERT_TRUE({fn}_expanded_width({dp - 1}, 1.f) & MD3_SIZE_MISMATCH);",
                 )
             )
 
